@@ -22,21 +22,14 @@ namespace ContosoAPI.Controllers
         {
             List<string> returnList = new List<string>();
 
-            try
+            using (var db = new ContosoDBEntities())
             {
-                using (var db = new ContosoDBEntities())
+                var keyValuePairs = db.DatabaseKeyValues;
+                
+                foreach (var keyValue in keyValuePairs)
                 {
-                    var keyValuePairs = db.DatabaseKeyValues;
-
-                    foreach (var keyValue in keyValuePairs)
-                    {
-                        returnList.Add(keyValue.Key + " || " + keyValue.Value);
-                    }
+                    returnList.Add(keyValue.Key + " || " + keyValue.Value);
                 }
-            }
-            catch (Exception ex)
-            {
-                telemetryClient.TrackException(ex);
             }
 
             return returnList;
@@ -122,10 +115,11 @@ namespace ContosoAPI.Controllers
                     {
                         keyValue.Value = newValue;
                         found = true;
-                        db.SaveChanges();
                         break;
                     }
                 }
+
+                db.SaveChanges();
             }
 
             if (!found)
@@ -146,22 +140,29 @@ namespace ContosoAPI.Controllers
 
             using (var db = new ContosoDBEntities())
             {
-                var keyValuePairs = db.DatabaseKeyValues;
-
-                foreach (var keyValue in keyValuePairs)
+                try
                 {
-                    if (keyValue.Key.Equals(key))
+                    var keyValuePairs = db.DatabaseKeyValues;
+
+                    foreach (var keyValue in keyValuePairs)
                     {
-                        db.DatabaseKeyValues.Remove(keyValue);
-                        found = true;
-                        break;
+                        if (keyValue.Key.Equals(key))
+                        {
+                            db.DatabaseKeyValues.Remove(keyValue);
+                            found = true;
+                            break;
+                        }
                     }
-                }
 
-                if(found)
+                    if (found)
+                    {
+                        db.SaveChanges();
+                    }
+                } catch(Exception ex)
                 {
-                    db.SaveChanges();
+                    this.telemetryClient.TrackException(ex);
                 }
+                
             }
 
             if (!found)
