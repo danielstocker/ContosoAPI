@@ -1,21 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Swashbuckle.Swagger.Annotations;
 using ContosoAPI.Models;
-using System.Threading.Tasks;
-using Microsoft.ApplicationInsights;
 
 namespace ContosoAPI.Controllers
 {
     public class ValuesController : ApiController
     {
-
-        private TelemetryClient telemetryClient = new TelemetryClient();
-
         // GET api/values
         [SwaggerOperation("GetAll")]
         public IEnumerable<string> Get()
@@ -25,7 +19,7 @@ namespace ContosoAPI.Controllers
             using (var db = new ContosoDBEntities())
             {
                 var keyValuePairs = db.DatabaseKeyValues;
-                
+
                 foreach (var keyValue in keyValuePairs)
                 {
                     returnList.Add(keyValue.Key + " || " + keyValue.Value);
@@ -70,19 +64,19 @@ namespace ContosoAPI.Controllers
         [SwaggerResponse(HttpStatusCode.BadRequest)]
         public HttpResponseMessage Post([FromBody]string value)
         {
-            if(value == null)
+            if (value == null)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "The key value pair is malformed. (no key and/or value supplied)");
             }
 
-            if(!value.Contains(@"||"))
+            if (!value.Contains(@"||"))
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "The key value pair is not in the expected format; 'key || value'");
             }
 
-            var keyValuePair = value.Split(new string[]{ @"||" }, StringSplitOptions.RemoveEmptyEntries);
+            var keyValuePair = value.Split(new string[] { @"||" }, StringSplitOptions.RemoveEmptyEntries);
 
-            if(keyValuePair.Length <= 1)
+            if (keyValuePair.Length <= 1)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "The key value pair is malformed. (no key and/or value supplied)");
             }
@@ -140,29 +134,23 @@ namespace ContosoAPI.Controllers
 
             using (var db = new ContosoDBEntities())
             {
-                try
-                {
-                    var keyValuePairs = db.DatabaseKeyValues;
+                var keyValuePairs = db.DatabaseKeyValues;
 
-                    foreach (var keyValue in keyValuePairs)
-                    {
-                        if (keyValue.Key.Equals(key))
-                        {
-                            db.DatabaseKeyValues.Remove(keyValue);
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (found)
-                    {
-                        db.SaveChanges();
-                    }
-                } catch(Exception ex)
+                foreach (var keyValue in keyValuePairs)
                 {
-                    this.telemetryClient.TrackException(ex);
+                    if (keyValue.Key.Equals(key))
+                    {
+                        db.DatabaseKeyValues.Remove(keyValue);
+                        found = true;
+                        break;
+                    }
                 }
-                
+
+                if (found)
+                {
+                    db.SaveChanges();
+                }
+
             }
 
             if (!found)
