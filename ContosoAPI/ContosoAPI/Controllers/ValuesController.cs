@@ -22,15 +22,19 @@ namespace ContosoAPI.Controllers
         {
             List<string> returnList = new List<string>();
 
-            try { 
-            using (var db = new ContosoDBEntities()) { 
-                var keyValuePairs = db.DatabaseKeyValues;
-
-                foreach (var keyValue in keyValuePairs)
+            try
+            {
+                using (var db = new ContosoDBEntities())
                 {
-                    returnList.Add(keyValue.Key + " || " + keyValue.Value);
+                    var keyValuePairs = db.DatabaseKeyValues;
+
+                    foreach (var keyValue in keyValuePairs)
+                    {
+                        returnList.Add(keyValue.Key + " || " + keyValue.Value);
+                    }
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 telemetryClient.TrackException(ex);
             }
