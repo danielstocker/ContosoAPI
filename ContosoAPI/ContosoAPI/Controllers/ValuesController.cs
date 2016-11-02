@@ -7,11 +7,14 @@ using System.Web.Http;
 using Swashbuckle.Swagger.Annotations;
 using ContosoAPI.Models;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 
 namespace ContosoAPI.Controllers
 {
     public class ValuesController : ApiController
     {
+
+        private TelemetryClient telemetryClient = new TelemetryClient();
 
         // GET api/values
         [SwaggerOperation("GetAll")]
@@ -19,6 +22,7 @@ namespace ContosoAPI.Controllers
         {
             List<string> returnList = new List<string>();
 
+            try { 
             using (var db = new ContosoDBEntities()) { 
                 var keyValuePairs = db.DatabaseKeyValues;
 
@@ -26,6 +30,9 @@ namespace ContosoAPI.Controllers
                 {
                     returnList.Add(keyValue.Key + " || " + keyValue.Value);
                 }
+            } catch (Exception ex)
+            {
+                telemetryClient.TrackException(ex);
             }
 
             return returnList;
